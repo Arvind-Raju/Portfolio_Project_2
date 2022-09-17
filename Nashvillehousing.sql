@@ -1,40 +1,23 @@
-/****** Script for SelectTopNRows command from SSMS  ******/
-SELECT *
-FROM [Portfolio_Project].[dbo].[Nashville_Housing]
+--CONVERT SALEDATE COLUMN TO DATE DATATYPE AND CREATE NEW COLUMN
 
 SELECT SaleDate, CONVERT(date,saledate)
 FROM [Portfolio_Project].[dbo].[Nashville_Housing]
 
---update command not functioning
-update Nashville_Housing
-set Saledateconverted= CONVERT(date,saledate) 
-
---alter command used to get around update
 ALTER TABLE Nashville_Housing
 ADD Saledateconverted Date
 
-SELECT *
-FROM [Portfolio_Project].[dbo].[Nashville_Housing]
-WHERE PropertyAddress is null
-ORDER BY ParcelID
+UPDATE Nashville_Housing
+SET Saledateconverted= CONVERT(date,saledate) 
+------------------------------------------------------------------
 
---SELECT 
---TABLE_CATALOG,
---TABLE_SCHEMA,
---TABLE_NAME, 
---COLUMN_NAME, 
---DATA_TYPE 
---FROM INFORMATION_SCHEMA.COLUMNS
---where TABLE_NAME = '[Portfolio_Project].[dbo].[Nashville_Housing]' 
-
---populating null address
+--POPULATING NULL ADDRESS WITH REQUIRED VALUE USING SELF JOIN
 
 SELECT a.ParcelID, a.PropertyAddress, b.ParcelID, b.PropertyAddress, ISNULL(a.PropertyAddress,b.PropertyAddress)
 FROM [Portfolio_Project].[dbo].[Nashville_Housing] a
 JOIN [Portfolio_Project].[dbo].[Nashville_Housing] b
-on a.ParcelID=b.ParcelID
-and a.[UniqueID ]<>b.[UniqueID ]
-WHERE a.PropertyAddress is null
+ON a.ParcelID=b.ParcelID
+AND a.[UniqueID ]<>b.[UniqueID ]
+WHERE a.PropertyAddress IS NULL
 
 UPDATE a
 SET PropertyAddress= ISNULL(a.PropertyAddress,b.PropertyAddress)
@@ -42,22 +25,17 @@ FROM [Portfolio_Project].[dbo].[Nashville_Housing] a
 JOIN [Portfolio_Project].[dbo].[Nashville_Housing] b
 on a.ParcelID=b.ParcelID
 and a.[UniqueID ]<>b.[UniqueID ]
-WHERE a.PropertyAddress is null
-
---TESTING IF CODE IS GOOD FOR SEPARATING ADDRESS
-
-SELECT 
-SUBSTRING(PropertyAddress,1,charindex(',',propertyaddress)-1)as address,
-SUBSTRING(PropertyAddress,charindex(',',propertyaddress)+1,len(propertyaddress))as address
-FROM [Portfolio_Project].[dbo].[Nashville_Housing]
+WHERE a.PropertyAddress IS NULL
+---------------------------------------------------------------------
 
 
 --SEPARATES PROPERTY NUMBER AND STORES IT SEPARATELY IN propertysplitaddress
+
 ALTER TABLE [Portfolio_Project].[dbo].[Nashville_Housing]
 ADD propertysplitaddress nvarchar(255)
 
-update [Portfolio_Project].[dbo].[Nashville_Housing]
-set propertysplitaddress=SUBSTRING(PropertyAddress,1,charindex(',',propertyaddress)-1)
+UPDATE [Portfolio_Project].[dbo].[Nashville_Housing]
+SET propertysplitaddress=SUBSTRING(PropertyAddress,1,charindex(',',propertyaddress)-1)
 
 
 --SEPARATES CITY FROM PROPERTY ADDRESS AND STORES IT SEPARATELY propertysplitcity
@@ -66,13 +44,6 @@ ADD propertysplitcity nvarchar(255)
 
 update [Portfolio_Project].[dbo].[Nashville_Housing]
 set propertysplitcity=SUBSTRING(PropertyAddress,charindex(',',propertyaddress)+1,len(propertyaddress))
-
-SELECT *
-FROM [Portfolio_Project].[dbo].[Nashville_Housing]
-
-
-SELECT OwnerAddress
-FROM [Portfolio_Project].[dbo].[Nashville_Housing]
 
 
 --SEPARATING OWNER ADDRESS
